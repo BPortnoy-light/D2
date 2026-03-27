@@ -75,19 +75,15 @@ INSERT INTO ComplianceDocumentation VALUES (NULL, 'Delta', 'OFHC', '2026-12-31',
 -- Echo
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Echo', 'BusinessLicence', '2026-12-31', 'City', 1);
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Echo', 'LiabilityInsurance', '2026-12-31', 'InsuranceCo', 1);
-INSERT INTO ComplianceDocumentation VALUES (NULL, 'Echo', 'OFHC', '2026-12-31', 'Ontario Board', 1);
 
 -- Foxtrot
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Foxtrot', 'BusinessLicence', '2026-12-31', 'City', 1);
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Foxtrot', 'LiabilityInsurance', '2026-12-31', 'InsuranceCo', 1);
-INSERT INTO ComplianceDocumentation VALUES (NULL, 'Foxtrot', 'OFHC', '2026-12-31', 'Ontario Board', 1);
 
 -- Golf
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Golf', 'BusinessLicence', '2026-12-31', 'City', 1);
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Golf', 'LiabilityInsurance', '2026-12-31', 'InsuranceCo', 1);
-INSERT INTO ComplianceDocumentation VALUES (NULL, 'Golf', 'OFHC', '2026-12-31', 'Ontario Board', 1);
 
 -- Hotel
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Hotel', 'BusinessLicence', '2026-12-31', 'City', 1);
 INSERT INTO ComplianceDocumentation VALUES (NULL, 'Hotel', 'LiabilityInsurance', '2026-12-31', 'InsuranceCo', 1);
-INSERT INTO ComplianceDocumentation VALUES (NULL, 'Hotel', 'OFHC', '2026-12-31', 'Ontario Board', 1);
