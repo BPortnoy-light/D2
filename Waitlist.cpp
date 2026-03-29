@@ -2,8 +2,8 @@
 #include <vector>
 #include "MarketStall.h"
 #include "Vendor.h"
-//#include "MarketDay.h"
-//#include "BookRequest.h"
+#include "MarketWeek.h"
+#include "BookingRequest.h"
 #include "Waitlist.h"
 
 // creates waitlist

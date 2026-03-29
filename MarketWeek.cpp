@@ -15,17 +15,17 @@ std::string MarketWeek::getDate()
     return date;
 }
 
-void MarketWeek::addStall(const MarketStall &stall)
+void MarketWeek::addStall(const MarketStall* stall)
 {
-    stalls.push_back(stall);
+    //stalls.push_back(stall);
 }
 
-std::vector<MarketStall>& MarketWeek::getStalls()
+std::vector<MarketStall*> MarketWeek::getStalls()
 {
     return stalls;
 }
 
-Waitlist& MarketWeek::getWaitlist()
+Waitlist* MarketWeek::getWaitlist()
 {
     return waitlist;
 }

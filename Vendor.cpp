@@ -4,6 +4,10 @@
 
 #include <string>
 
+Vendor::Vendor()
+{
+
+}
 
 Vendor::Vendor(std::string businessName,std::string ownerName,std::string email,std::string phone, std::string mailing,std::string category,std::string username)
 {
@@ -113,10 +117,10 @@ std::vector<Waitlist*> Vendor::getJoinedWaitlists()
 {
     return this->joinedWaitlists;
 }
-//std::vector<Notification*> Vendor::getVendorNotifications()
-//{
-//    return this->vendorNotifications;
-//}
+std::vector<Notification*> Vendor::getVendorNotifications()
+{
+    return this->vendorNotifications;
+}
 
 // give text represnetation of permission
 std::string Vendor::displayPermission()

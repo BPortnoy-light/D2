@@ -3,6 +3,7 @@
 
 #include <string>
 
+// view requests handle data transfer to and from the market schedule
 class ViewRequest
 {
 private:

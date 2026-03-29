@@ -3,15 +3,15 @@
 
 #include <vector>
 #include <string>
-#include "MarketStall.h"
-#include "Waitlist.h"
+class MarketStall;
+class Waitlist;
 
 class MarketWeek
 {
 private:
     std::string date;
-    std::vector<MarketStall> stalls;
-    Waitlist waitlist;
+    std::vector<MarketStall*> stalls;
+    Waitlist* waitlist;
 
 public:
     MarketWeek();
@@ -19,10 +19,10 @@ public:
 
     std::string getDate();
 
-    void addStall(const MarketStall &stall);
-    std::vector<MarketStall>& getStalls();
+    void addStall(const MarketStall* stall);
+    std::vector<MarketStall*> getStalls();
 
-    Waitlist& getWaitlist();
+    Waitlist* getWaitlist();
 };
 
 #endif

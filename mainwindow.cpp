@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "../DashboardControl.h"
+#include "DashboardControl.h"
 #include "AccountStorage.h"
 
 #include <QMessageBox>
@@ -17,9 +17,11 @@ MainWindow::MainWindow(QWidget *parent)
     // menu bar hidden before login
     ui->menubar->setVisible(false);
 
-    // connecting stacked widget with main window
-    connect(ui->vendorDashboardSW, &QStackedWidget::currentChanged,this, &MainWindow::onDashboard);
+    // connecting stacked widget with main window page handler
+    connect(ui->vendorDashboardSW, &QStackedWidget::currentChanged,this, &MainWindow::onPageChange);
 
+    database=QSqlDatabase::addDatabase("QSQLITE");
+    QString dbPath = QCoreApplication::applicationDirPath()+"/OurDatabaseName.db";
 
 }
 
@@ -31,19 +33,20 @@ MainWindow::~MainWindow()
 
 
 // page change handler
+// TODO: trigger refresh on page change
 void MainWindow::onPageChange(int index)
 {
-/*
+
     QWidget* current = ui->vendorDashboardSW->widget(index);
 
     if (current == ui->dashboardPage)
     {
         onDashboard(index);
     }
-    else if (current == ui->schedulePage)
-    {
-        onMarketSchedule(index);
-    }
+    //else if (current == ui->schedulePage)
+    //{
+    //    onMarketSchedule(index);
+    //}
     else if (current == ui->operatorHomePage)
     {
         onOperatorHomePage(index);
@@ -52,7 +55,7 @@ void MainWindow::onPageChange(int index)
     {
         onSysAdminHomePage(index);
     }
-*/
+
 
 }
 
@@ -111,6 +114,7 @@ void MainWindow::on_loginButton_clicked()
 
 }
 
+// REFRESH FUNCTIONS
 
 // decides what to show when on dashboard
 void MainWindow::onDashboard(int index)
@@ -179,6 +183,54 @@ void MainWindow::onDashboard(int index)
     // continue with dashboard display
     // call refresh function at the end to get real values from storage -- not implemented yet
 }
+
+
+//TODO: OUTSOURCE QUERYBUILDING TO DATABASE MANAGER / DISPLAY REQUEST
+void MainWindow::onOperatorHomePage(int index)
+{
+    ui->operatorVendorSelectList->clear();
+
+    // update operatorNameLabel with operator username from active user
+    ui->operatorNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
+
+    // update operatorVendorSelect list with usernames of all vendors in vendors table
+
+    // build query -- this should likely by a display request
+    QSqlQuery vendorUsernamequery("SELECT USERNAME FROM VENDOR");
+    while(vendorUsernamequery.next())
+    {
+        QString username = vendorUsernamequery.value(0).toString();
+        ui->operatorVendorSelectList->addItem(username);
+    }
+
+}
+
+
+// Done
+void MainWindow::onSysAdminHomePage(int index)
+{
+    // update sysAdminNameLabel with sysAdmin username from active user
+    ui->sysAdminNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //Refresh Dashboardbutton
 void MainWindow::on_refreshDashboardButton_clicked()
@@ -259,7 +311,7 @@ void MainWindow::on_cancelWaitlistButton_clicked()
 }
 
 
-// Menu functions
+// Menubar functions
 void MainWindow::on_actionDashboard_triggered()
 {
     ui->vendorDashboardSW->setCurrentWidget(ui->dashboardPage);

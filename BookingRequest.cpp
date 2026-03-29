@@ -1,10 +1,11 @@
 #include "BookingRequest.h"
+#include "MarketWeek.h"
 
-BookingRequest::BookingRequest(Vendor v, MarketStall s, MarketDay d)
+BookingRequest::BookingRequest(Vendor v, MarketStall s, MarketWeek w)
 {
     vendor = v;
     stall = s;
-    day = d;
+    week = w;
 }
 
 Vendor BookingRequest::getVendor()
@@ -17,7 +18,7 @@ MarketStall BookingRequest::getStall()
     return stall;
 }
 
-MarketDay BookingRequest::getDay()
+MarketWeek BookingRequest::getWeek()
 {
-    return day;
+    return week;
 }

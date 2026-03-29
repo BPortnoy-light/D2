@@ -3,7 +3,7 @@
 #include "User.h"
 #include "ComplianceDocumentation.h"
 #include "Waitlist.h"
-//#include "Notification.h"
+#include "Notification.h"
 #include <string>
 #include <vector>
 
@@ -31,7 +31,7 @@ class Vendor : public User
         std::vector<Waitlist*> joinedWaitlists;
 
         // vector of notifications
-        //std::vector<Notification*> vendorNotifications;
+        std::vector<Notification*> vendorNotifications;
 
     public:
         // default if nothing
@@ -77,6 +77,6 @@ class Vendor : public User
         bool getComplianceOK();
         std::vector<ComplianceDocumentation*> getComplianceVector();
         std::vector<Waitlist*> getJoinedWaitlists();
-        //std::vector<Notification*> getVendorNotifications();
+        std::vector<Notification*> getVendorNotifications();
 };
 #endif // VENDOR_H
