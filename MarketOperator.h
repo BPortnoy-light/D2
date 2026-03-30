@@ -4,8 +4,8 @@
 #include "ComplianceDocumentation.h"
 #include "Waitlist.h"
 #include "Vendor.h"
-//#include "Notification.h"
-//#include "MarketDay.h"
+#include "Notification.h"
+#include "MarketWeek.h"
 #include <string>
 #include <vector>
 

@@ -3,21 +3,22 @@
 
 #include "Vendor.h"
 #include "MarketStall.h"
-#include "MarketDay.h"
+#include "MarketWeek.h"
 
+// booking requests handle i
 class BookingRequest
 {
 private:
     Vendor vendor;
     MarketStall stall;
-    MarketDay day;
+    MarketWeek week;
 
 public:
-    BookingRequest(Vendor v, MarketStall s, MarketDay d);
+    BookingRequest(Vendor v, MarketStall s, MarketWeek d);
 
     Vendor getVendor();
     MarketStall getStall();
-    MarketDay getDay();
+    MarketWeek getWeek();
 };
 
 #endif

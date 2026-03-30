@@ -2,8 +2,8 @@
 #include "MarketOperator.h"
 #include "ComplianceDocumentation.h"
 #include "Waitlist.h"
-//#include "Notification.h"
-//#include "MarketDay.h"
+#include "Notification.h"
+#include "MarketWeek.h"
 #include <string>
 #include <vector>
 

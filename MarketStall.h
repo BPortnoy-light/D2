@@ -1,5 +1,6 @@
 #ifndef MARKETSTALL_H
 #define MARKETSTALL_H
+#include "MarketWeek.h"
 #include <string>
 //PLACEHOLDER
 
@@ -9,7 +10,7 @@ class MarketStall
 
     private:
         int ID;
-        // MarketDate date;??
+        MarketWeek week;
         std::string category;
         int price;
         bool booked;

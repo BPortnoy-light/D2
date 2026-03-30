@@ -2,9 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 #include "AccountStorage.h"
-#include "../User.h"
+#include "User.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,8 +20,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    // refresh functions
+    void onPageChange(int index);
+
     // detect if on dashboard page
     void onDashboard(int index);
+    void onOperatorHomePage(int index);
+    void onSysAdminHomePage(int index);
 
     void loadMarketSchedule();
 
@@ -32,7 +39,8 @@ private:
     // create accounts storage
     AccountStorage accounts;
 
-
+    // create database instance
+    QSqlDatabase database;
 
 // button actions go here
 private slots:
@@ -50,14 +58,15 @@ private slots:
     void on_refreshDashboardButton_clicked();
 
 
-    void onPageChange(int index);
 
+//
     void on_actionDashboard_triggered();
     void on_actionMarket_Schedule_triggered();
     void on_actionVendorSelect_triggered();
     void on_actionLogout_triggered();
     void on_actionLogout_2_triggered();
     void on_actionLogout_3_triggered();
+
 
 };
 #endif // MAINWINDOW_H

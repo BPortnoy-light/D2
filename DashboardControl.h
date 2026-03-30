@@ -2,7 +2,7 @@
 #define DASHBOARDCONTROL_H
 #include "MarketStall.h"
 #include "Vendor.h"
-//#include "MarketDay.h"
+#include "MarketWeek.h"
 #include <string>
 #include <vector>
 /*

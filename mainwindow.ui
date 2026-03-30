@@ -113,30 +113,7 @@
        <string>Book Stall</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="waitlistButton">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>380</y>
-        <width>150</width>
-        <height>30</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Join Waitlist</string>
-      </property>
-     </widget>
-     <widget class="QListWidget" name="scheduleCurrentBookingList">
-      <property name="geometry">
-       <rect>
-        <x>680</x>
-        <y>70</y>
-        <width>161</width>
-        <height>301</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="bookButton_2">
+     <widget class="QPushButton" name="cancelStallButton">
       <property name="geometry">
        <rect>
         <x>690</x>
@@ -160,6 +137,16 @@
       </property>
       <property name="text">
        <string>My Current Bookings</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="ScheduleactiveBookingTable">
+      <property name="geometry">
+       <rect>
+        <x>685</x>
+        <y>71</y>
+        <width>151</width>
+        <height>301</height>
+       </rect>
       </property>
      </widget>
     </widget>
@@ -271,19 +258,9 @@
       <property name="geometry">
        <rect>
         <x>430</x>
-        <y>100</y>
-        <width>400</width>
-        <height>131</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QListWidget" name="NotifListView">
-      <property name="geometry">
-       <rect>
-        <x>440</x>
-        <y>330</y>
-        <width>391</width>
-        <height>131</height>
+        <y>240</y>
+        <width>341</width>
+        <height>81</height>
        </rect>
       </property>
      </widget>
@@ -291,7 +268,7 @@
       <property name="geometry">
        <rect>
         <x>360</x>
-        <y>540</y>
+        <y>510</y>
         <width>120</width>
         <height>30</height>
        </rect>
@@ -338,21 +315,11 @@
        <string/>
       </property>
      </widget>
-     <widget class="QTableView" name="tableView">
+     <widget class="QLabel" name="vendorWaitlistLabel">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>330</y>
-        <width>261</width>
-        <height>131</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="vendorInfoLabel_2">
-      <property name="geometry">
-       <rect>
-        <x>420</x>
-        <y>70</y>
+        <x>430</x>
+        <y>210</y>
         <width>141</width>
         <height>30</height>
        </rect>
@@ -367,11 +334,11 @@
        <string>Active Waitlists</string>
       </property>
      </widget>
-     <widget class="QLabel" name="vendorInfoLabel_3">
+     <widget class="QLabel" name="vendorNotificationsLabel">
       <property name="geometry">
        <rect>
         <x>430</x>
-        <y>300</y>
+        <y>350</y>
         <width>141</width>
         <height>30</height>
        </rect>
@@ -384,6 +351,55 @@
       </property>
       <property name="text">
        <string>Notifications</string>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="dashboardComplianceTableView">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>330</y>
+        <width>351</width>
+        <height>131</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="dashboardNotificationTableView">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>380</y>
+        <width>341</width>
+        <height>81</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="activeStallBookingTableView">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>100</y>
+        <width>341</width>
+        <height>81</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="activeStallBookingLabel">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>70</y>
+        <width>161</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Active Stall Bookings</string>
       </property>
      </widget>
     </widget>

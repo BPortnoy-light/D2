@@ -1,7 +1,7 @@
 #include <string>
-#include "BookRequest.h"
+#include "BookingRequest.h"
 #include "Request.h"
 #include "MarketStall.h"
-#include "MarketDay.h"
+#include "MarketWeek.h"
 #include "Vendor.h"
 

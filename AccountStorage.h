@@ -1,7 +1,7 @@
 #ifndef ACCOUNTSTORAGE_H
 #define ACCOUNTSTORAGE_H
-#include "../User.h"
-#include "../Vendor.h"
+#include "User.h"
+#include "Vendor.h"
 #include <string>
 #include <vector>
 #include <memory>
