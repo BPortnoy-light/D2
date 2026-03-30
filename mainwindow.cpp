@@ -32,8 +32,7 @@ MainWindow::~MainWindow()
 }
 
 
-// page change handler
-// TODO: trigger refresh on page change
+// Page change handler
 void MainWindow::onPageChange(int index)
 {
 
@@ -43,10 +42,10 @@ void MainWindow::onPageChange(int index)
     {
         onDashboard(index);
     }
-    //else if (current == ui->schedulePage)
-    //{
-    //    onMarketSchedule(index);
-    //}
+    else if (current == ui->schedulePage)
+    {
+        loadMarketSchedule();
+    }
     else if (current == ui->operatorHomePage)
     {
         onOperatorHomePage(index);
@@ -65,6 +64,7 @@ void MainWindow::onPageChange(int index)
 // Login Fuctions
 
 // Loginbutton
+// TODO: ADD SQL FUNCTIONALITY
 void MainWindow::on_loginButton_clicked()
 {
     // clear active user
@@ -116,72 +116,137 @@ void MainWindow::on_loginButton_clicked()
 
 // REFRESH FUNCTIONS
 
-// decides what to show when on dashboard
+// TODO: ADD SQL TO THIS
+// refreshes vendor dashboard
 void MainWindow::onDashboard(int index)
 {
-    if (index == 2)
+    // clear all tables
+    ui->WLtableWidget->clear();
+    ui->dashboardComplianceTableView->clear();
+    ui->dashboardNotificationTableView->clear();
+    ui->activeStallBookingTableView->clear();
+
+
+    //Dashboard object: delete this when connect database
+    DashboardControl dc;
+    //Waitlist Table View - delete this
+    /*
+    ui->WLtableWidget->setHorizontalHeaderLabels({"Date", "Position"});
+    ui->WLtableWidget->setRowCount(8);
+    ui->WLtableWidget->setColumnCount(2);
+
+    ui->WLtableWidget->setItem(0,0,new QTableWidgetItem("2026-05-03"));
+    ui->WLtableWidget->setItem(0,1,new QTableWidgetItem("1"));
+
+    ui->WLtableWidget->setItem(1,0,new QTableWidgetItem("2026-05-10"));
+    ui->WLtableWidget->setItem(1,1,new QTableWidgetItem("2"));
+
+    ui->WLtableWidget->setItem(2,0,new QTableWidgetItem("2026-05-17"));
+    ui->WLtableWidget->setItem(2,1,new QTableWidgetItem("1"));
+
+    ui->WLtableWidget->setItem(3,0,new QTableWidgetItem("2026-05-24"));
+    ui->WLtableWidget->setItem(3,1,new QTableWidgetItem("3"));
+    */
+
+    // Populate username, category, phone, email, mailing from active user
+    ui->vendorNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
+    ui->BICategoryLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getCategory()));
+    ui->BIOwnerNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
+    ui->BIEmailLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getEmail()));
+    ui->BIPhoneLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getPhone()));
+    ui->BIMailingLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getMailing()));
+
+
+    // Populate Compliance Docs table view
+    // setup table with headers
+    QTableWidget *complianceDocumentsTable = ui->dashboardComplianceTableView;
+    complianceDocumentsTable->setColumnCount(3);
+    complianceDocumentsTable->setHorizontalHeaderLabels({"Document Type","Status","Exp Date"});
+
+    // PLACEHOLDER -- INSERT SQL CALL HERE
+    QSqlQuery userComplianceDocumentsQuery;
+    userComplianceDocumentsQuery.prepare("SELECT TYPE, STATUS, EXPIRATIONDATE FROM COMPLIANCEDOCUMENTATION WHERE USERNAME=:username");
+    userComplianceDocumentsQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+    int row = 0;
+
+    while (userComplianceDocumentsQuery.next())
     {
-        //Dashboard Initial:
-        DashboardControl dc;
+        complianceDocumentsTable->insertRow(row);
 
-        //Waitlist Table View
-        ui->WLtableWidget->setHorizontalHeaderLabels({"Date", "Position"});
-        ui->WLtableWidget->setRowCount(8);
-        ui->WLtableWidget->setColumnCount(2);
-
-        ui->WLtableWidget->setItem(0,0,new QTableWidgetItem("2026-05-03"));
-        ui->WLtableWidget->setItem(0,1,new QTableWidgetItem("1"));
-
-        ui->WLtableWidget->setItem(1,0,new QTableWidgetItem("2026-05-10"));
-        ui->WLtableWidget->setItem(1,1,new QTableWidgetItem("2"));
-
-        ui->WLtableWidget->setItem(2,0,new QTableWidgetItem("2026-05-17"));
-        ui->WLtableWidget->setItem(2,1,new QTableWidgetItem("1"));
-
-        ui->WLtableWidget->setItem(3,0,new QTableWidgetItem("2026-05-24"));
-        ui->WLtableWidget->setItem(3,1,new QTableWidgetItem("3"));
-        // on navigation to page update this
-        // on refresh update this
-
-        // Bus info
-        //ui->BIBusNameLabel->setText(QString::fromStdString(dc.getBIName()));
-        ui->BICategoryLabel->setText(QString::fromStdString(dc.getBICategory()));
-        ui->BIOwnerNameLabel->setText(QString::fromStdString(dc.getBIOwnerName()));
-        ui->BIEmailLabel->setText(QString::fromStdString(dc.getBIEmail()));
-        ui->BIPhoneLabel->setText(QString::fromStdString(dc.getBIPhone()));
-        ui->BIMailingLabel->setText(QString::fromStdString(dc.getBIMailing()));
-
-        // new fetch from active user object
-        ui->vendorNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
-        ui->BICategoryLabel->setText(QString::fromStdString(ActiveUser->displayPermission()));
-        ui->BIOwnerNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
-        ui->BIEmailLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getEmail()));
-        ui->BIPhoneLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getPhone()));
-        ui->BIMailingLabel->setText(QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getMailing()));
-
-
+        complianceDocumentsTable->setItem(row, 0, new QTableWidgetItem(userComplianceDocumentsQuery.value(0).toString()));
+        complianceDocumentsTable->setItem(row, 1, new QTableWidgetItem(userComplianceDocumentsQuery.value(1).toString()));
+        complianceDocumentsTable->setItem(row, 2, new QTableWidgetItem(userComplianceDocumentsQuery.value(2).toString()));
+        row++;
     }
-    // Compliance Docs
-    // if a food vendor
-    if (index==2 )//&& vendor.category=="food")
+
+    // Setup Waitlist table view
+    QTableWidget *waitlistTable = ui->WLtableWidget;
+    waitlistTable->setColumnCount(3);
+    waitlistTable->setHorizontalHeaderLabels({"Week Number","Type","Queue Position"});
+
+    // Populate Waitlist table view
+    // PLACEHOLDER -- INSERT SQL CALL HERE
+    QSqlQuery waitlistPopulateQuery;
+    waitlistPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY, POSITION FROM WAITLIST JOIN WAITLIST_ENTRY ON WAITLIST_ENTRY.WAITLIST_ID=WAITLIST.WAITLIST_ID JOIN VENDOR ON VENDOR.VENDOR_ID=WAITLIST_ENTRY.VENDOR_ID WHERE USERNAME=:username" );
+    waitlistPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+    row = 0;
+
+    while (waitlistPopulateQuery.next())
     {
-        // sets labels to empty initially
-        //ui->CDBLStatusLabel->setText("Valid");
-        //ui->CDBLExpDateLabel->setText("2026-10-01");
-        //ui->CDLIStatusLabel->setText("Valid");
-        //ui->CDLIExpDateLabel->setText("2026-10-01");
-        //ui->CDFCStatusLabel->setText("Valid");
-        //ui->CDFCExpDateLabel->setText("2026-10-01");
-    }
-    else //not food vendor hide elements they wont need
-    {
-        //ui->CDFCLabel->hide();
-        //ui->CDFCStatusLabel->hide();
-        //ui->CDFCExpDateLabel->hide();
+        waitlistTable->insertRow(row);
+
+        waitlistTable->setItem(row, 0, new QTableWidgetItem(waitlistPopulateQuery.value(0).toString()));
+        waitlistTable->setItem(row, 1, new QTableWidgetItem(waitlistPopulateQuery.value(1).toString()));
+        waitlistTable->setItem(row, 2, new QTableWidgetItem(waitlistPopulateQuery.value(2).toString()));
+        row++;
     }
 
-    // continue with dashboard display
-    // call refresh function at the end to get real values from storage -- not implemented yet
+
+    // Setup Active Bookings table view
+    QTableWidget *activeBookingTable = ui->activeStallBookingTableView;
+    activeBookingTable->setColumnCount(2);
+    activeBookingTable->setHorizontalHeaderLabels({"Week Number","Category"});
+
+    // Populate Active Bookings table view
+    // PLACEHOLDER -- INSERT SQL CALL HERE
+    QSqlQuery activeBookingPopulateQuery;
+    activeBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
+    activeBookingPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+    row = 0;
+
+    while (activeBookingPopulateQuery.next())
+    {
+        activeBookingTable->insertRow(row);
+
+        activeBookingTable->setItem(row, 0, new QTableWidgetItem(activeBookingPopulateQuery.value(0).toString()));
+        activeBookingTable->setItem(row, 1, new QTableWidgetItem(activeBookingPopulateQuery.value(1).toString()));
+        row++;
+    }
+
+
+    // Setup Notification table view
+    QTableWidget *notificationsTable = ui->dashboardNotificationTableView;
+    notificationsTable->setColumnCount(1);
+    notificationsTable->setHorizontalHeaderLabels({"Message"});
+
+    // Populate Notification table view
+    // PLACEHOLDER -- INSERT SQL CALL HERE
+    QSqlQuery notificationPopulateQuery;
+    notificationPopulateQuery.prepare("SELECT MESSAGE FROM NOTIFICATION JOIN VENDOR ON VENDOR.VENDOR_ID=NOTIFICATION.VENDOR_ID WHERE USERNAME=:username" );
+    notificationPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+    row = 0;
+
+    while (notificationPopulateQuery.next())
+    {
+        notificationsTable->insertRow(row);
+
+        notificationsTable->setItem(row, 0, new QTableWidgetItem(notificationPopulateQuery.value(0).toString()));
+        row++;
+    }
 }
 
 
@@ -215,57 +280,62 @@ void MainWindow::onSysAdminHomePage(int index)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //Refresh Dashboardbutton
 void MainWindow::on_refreshDashboardButton_clicked()
 {
-    DashboardControl dc;
-
-   //ui->BIBusNameLabel->setText(QString::fromStdString(dc.getBIName()));
-    ui->BICategoryLabel->setText(QString::fromStdString(dc.getBICategory()));
-    ui->BIOwnerNameLabel->setText(QString::fromStdString(dc.getBIOwnerName()));
+    onDashboard(2);
 }
 
 
+// TODO: add sql
 //loadMarketschedule
 void MainWindow::loadMarketSchedule()
 {
-    ui->marketTable->setColumnCount(3);
-    ui->marketTable->setHorizontalHeaderLabels({"Date","Food Stalls","Artisan Stalls"});
+    // table setup
+    QTableWidget *marketScheduleTable=ui->marketTable;
+    marketScheduleTable->setColumnCount(3);
+    marketScheduleTable->setHorizontalHeaderLabels({"Week Number","Stall ID","Category"});
 
-    ui->marketTable->setRowCount(4);
+    // Populate Market Schedule -- replace with sql function
+    QSqlQuery marketSchedulePopulateQuery;
+    marketSchedulePopulateQuery.prepare("SELECT WEEK_ID, STALL_ID, CATEGORY FROM MARKETSTALL JOIN MARKETWEEK ON MARKETWEEK.WEEK_ID=MARKETSTALL.MARKET_ID WHERE MARKETSTALL.BOOKED=FALSE AND MARKETSTALL.CATEGORY=:myCategory" );
+    marketSchedulePopulateQuery.bindValue(":myCategory",QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getCategory()));
 
-    ui->marketTable->setItem(0,0,new QTableWidgetItem("2026-05-04"));
-    ui->marketTable->setItem(0,1,new QTableWidgetItem("2"));
-    ui->marketTable->setItem(0,2,new QTableWidgetItem("2"));
+    int row = 0;
 
-    ui->marketTable->setItem(1,0,new QTableWidgetItem("2026-05-11"));
-    ui->marketTable->setItem(1,1,new QTableWidgetItem("2"));
-    ui->marketTable->setItem(1,2,new QTableWidgetItem("2"));
+    while (marketSchedulePopulateQuery.next())
+    {
+        marketScheduleTable->insertRow(row);
 
-    ui->marketTable->setItem(2,0,new QTableWidgetItem("2026-05-18"));
-    ui->marketTable->setItem(2,1,new QTableWidgetItem("2"));
-    ui->marketTable->setItem(2,2,new QTableWidgetItem("2"));
+        marketScheduleTable->setItem(row, 0, new QTableWidgetItem(marketSchedulePopulateQuery.value(0).toString()));
+        marketScheduleTable->setItem(row, 1, new QTableWidgetItem(marketSchedulePopulateQuery.value(1).toString()));
+        marketScheduleTable->setItem(row, 2, new QTableWidgetItem(marketSchedulePopulateQuery.value(2).toString()));
+        row++;
+    }
 
-    ui->marketTable->setItem(3,0,new QTableWidgetItem("2026-05-25"));
-    ui->marketTable->setItem(3,1,new QTableWidgetItem("2"));
-    ui->marketTable->setItem(3,2,new QTableWidgetItem("2"));
+    // table setup
+    QTableWidget *MSActiveBookingTable=ui->ScheduleactiveBookingTable;
+    MSActiveBookingTable->setColumnCount(2);
+    MSActiveBookingTable->setHorizontalHeaderLabels({"Week Number","Category"});
+
+    // Populate Active Bookings -- replace with sql function
+    QSqlQuery MSactiveBookingPopulateQuery;
+    MSactiveBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
+    MSactiveBookingPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+
+    row = 0;
+
+    while (MSactiveBookingPopulateQuery.next())
+    {
+        MSActiveBookingTable->insertRow(row);
+
+        MSActiveBookingTable->setItem(row, 0, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(0).toString()));
+        MSActiveBookingTable->setItem(row, 1, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(1).toString()));
+        row++;
+    }
+
+
 }
 
 //BookstallButton
