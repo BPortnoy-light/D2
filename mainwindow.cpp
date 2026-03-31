@@ -84,7 +84,7 @@ void MainWindow::on_loginButton_clicked()
         return;
     }
     // refresh handle to opened database
-    database = QSqlDatabase::database("hinton_connection");
+    database = QSqlDatabase::database();
 
     if (!database.isOpen())
     {
