@@ -143,7 +143,7 @@ void MainWindow::onDashboard(int index)
         return;
     }
 
-    database = QSqlDatabase::database("hinton_connection");
+    database = QSqlDatabase::database();
     if(!database.isOpen())
     {
         qDebug() << "Database is not open in onDashboard.";
@@ -308,7 +308,7 @@ void MainWindow::onOperatorHomePage(int index)
         return;
     }
 
-    database = QSqlDatabase::database("hinton_connection");
+    database = QSqlDatabase::database();
     if (!database.isOpen())
     {
         qDebug() << "Database is not open in onOperatorHomePage.";
@@ -366,7 +366,7 @@ void MainWindow::loadMarketSchedule()
         return;
     }
 
-    database = QSqlDatabase::database("hinton_connection");
+    database = QSqlDatabase::database();
     if(!database.isOpen())
     {
         qDebug() << "Database is not open in loadMarketSchedule.";
