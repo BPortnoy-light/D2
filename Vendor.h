@@ -78,5 +78,8 @@ class Vendor : public User
         std::vector<ComplianceDocumentation*> getComplianceVector();
         std::vector<Waitlist*> getJoinedWaitlists();
         std::vector<Notification*> getVendorNotifications();
+
+        Waitlist* findWaitlist(int week, std::string category);
+
 };
 #endif // VENDOR_H

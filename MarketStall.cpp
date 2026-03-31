@@ -1,5 +1,6 @@
 #include "MarketStall.h"
-//PLACEHOLDER
+#include <string>
+
 MarketStall::MarketStall()
 {
 }
@@ -21,4 +22,12 @@ bool MarketStall::isBooked()
 void MarketStall::setBooked(bool status)
 {
     this->booked=status;
+}
+int MarketStall::getID()
+{
+    return ID;
+}
+std::string MarketStall::getCategory()
+{
+    return category;
 }

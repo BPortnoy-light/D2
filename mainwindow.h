@@ -27,7 +27,6 @@ public:
     void onDashboard(int index);
     void onOperatorHomePage(int index);
     void onSysAdminHomePage(int index);
-
     void loadMarketSchedule();
 
 private:
@@ -36,10 +35,10 @@ private:
     User* ActiveUser;
     Vendor* onBehalfVendor;
 
-    // create accounts storage
+    // create accounts storage -- probably dont need this beyond non db testing
     AccountStorage accounts;
 
-    // create database instance
+    // Create database instance
     QSqlDatabase database;
 
 // button actions go here
@@ -59,7 +58,9 @@ private slots:
 
 
 
-//
+    // operator buttons
+
+
     void on_actionDashboard_triggered();
     void on_actionMarket_Schedule_triggered();
     void on_actionVendorSelect_triggered();
@@ -68,5 +69,8 @@ private slots:
     void on_actionLogout_3_triggered();
 
 
+    void on_operatorSelectVendorButton_clicked();
+    void on_operatorManageStallButton_clicked();
+    void on_vendorLeaveWaitlist_clicked();
 };
 #endif // MAINWINDOW_H

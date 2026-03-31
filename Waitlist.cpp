@@ -20,19 +20,21 @@ Waitlist::Waitlist(std::string category,int weekID)
 //}
 
 // removes a book reqwust from waitlist if IDs match
-//void Waitlist::removeBookRequest(BookRequest &booking)
-//{
- //   for (size_t i=0; i<bookingQueue.size();i++)
-  //  {
-        // if ids match remove element - vector fixes space itself
-     //   if (bookingQueue[i].getBookingID()==booking.getBookingID())
-       // {
-            // must use iterator to use erase
-     //       bookingQueue.erase(bookingQueue.begin()+i);
-       //     break;
-    //    }
-   // }
-//}
+void Waitlist::removeBookRequest(std::string username, int stall, std::string week)
+{
+    // iterate through and check for
+    for(int i=0; i<bookingQueue.size();i++)
+    {
+        if (username==bookingQueue[i]->getVendor()->getUsername() && stall==bookingQueue[i]->getStall().getID() && week==bookingQueue[i]->getWeek().getDate())
+        {
+            for (int j=i; j<bookingQueue.size()-1; ++j)
+                {
+                    bookingQueue[j] = bookingQueue[j + 1];
+                }
+            bookingQueue.resize(bookingQueue.size() - 1);
+        }
+    }
+}
 
 std::string Waitlist::getCategory()
 {
