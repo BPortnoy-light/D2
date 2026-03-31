@@ -3,6 +3,10 @@
 #include "DashboardControl.h"
 #include "AccountStorage.h"
 
+#include <QDebug>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 #include <QMessageBox>
 #include <QTableWidgetItem>
 #include <iostream>
@@ -70,20 +74,32 @@ void MainWindow::on_loginButton_clicked()
     // clear active user
     ActiveUser=nullptr;
 
-    QString username = ui->usernameInput->text();
+    QString username = ui->usernameInput->text().trimmed();
 
     // TODO: REPLACE THIS WITH DATABASE QUERY FOR USERNAME
     // check if text is in accounts
-    if(!(this->accounts.findUsername(username.toStdString())))
+    if(username.isEmpty())
     {
         QMessageBox::warning(this,"Login","Invalid username");
+        return;
+    }
+    // refresh handle to opened database
+    database = QSqlDatabase::database("hinton_connection");
+
+    if (!database.isOpen())
+    {
+        QMessageBox::warning(this,"Login","Database is not open");
         return;
     }
     // TODO: CHANGE THIS TO BUILD FROM SQL
     // build and set current user
     ActiveUser=this->accounts.getUser(username.toStdString());
     //std::cout << ActiveUser->displayPermission()<< std::endl;
-
+    if (ActiveUser == nullptr)
+    {
+        QMessageBox::warning(this,"Login","Failed to load user");
+        return;
+    }
     switch (ActiveUser->getPermission())
         {
             case 0: // vendor
@@ -120,6 +136,25 @@ void MainWindow::on_loginButton_clicked()
 // refreshes vendor dashboard
 void MainWindow::onDashboard(int index)
 {
+    Q_UNUSED(index);
+
+    if(ActiveUser == nullptr)
+    {
+        return;
+    }
+
+    database = QSqlDatabase::database("hinton_connection");
+    if(!database.isOpen())
+    {
+        qDebug() << "Database is not open in onDashboard.";
+        return;
+    }
+
+    Vendor* activeVendor = dynamic_cast<Vendor*>(ActiveUser);
+    if(activeVendor == nullptr)
+    {
+        return;
+    }
     // clear all tables
     ui->WLtableWidget->clear();
     ui->dashboardComplianceTableView->clear();
@@ -170,6 +205,11 @@ void MainWindow::onDashboard(int index)
 
     int row = 0;
 
+    if(!userComplianceDocumentsQuery.exec())
+    {
+        qDebug() << "Compliance query failed:" << userComplianceDocumentsQuery.lastError().text();
+    }
+
     while (userComplianceDocumentsQuery.next())
     {
         complianceDocumentsTable->insertRow(row);
@@ -193,6 +233,10 @@ void MainWindow::onDashboard(int index)
 
     row = 0;
 
+    if(!waitlistPopulateQuery.exec())
+    {
+        qDebug() << "Waitlist query failed:" << waitlistPopulateQuery.lastError().text();
+    }
     while (waitlistPopulateQuery.next())
     {
         waitlistTable->insertRow(row);
@@ -217,6 +261,10 @@ void MainWindow::onDashboard(int index)
 
     row = 0;
 
+    if(!activeBookingPopulateQuery.exec())
+    {
+        qDebug() << "Active booking query failed:" << activeBookingPopulateQuery.lastError().text();
+    }
     while (activeBookingPopulateQuery.next())
     {
         activeBookingTable->insertRow(row);
@@ -253,6 +301,20 @@ void MainWindow::onDashboard(int index)
 //TODO: OUTSOURCE QUERYBUILDING TO DATABASE MANAGER / DISPLAY REQUEST
 void MainWindow::onOperatorHomePage(int index)
 {
+    Q_UNUSED(index);
+
+    if (ActiveUser == nullptr)
+    {
+        return;
+    }
+
+    database = QSqlDatabase::database("hinton_connection");
+    if (!database.isOpen())
+    {
+        qDebug() << "Database is not open in onOperatorHomePage.";
+        return;
+    }
+
     ui->operatorVendorSelectList->clear();
 
     // update operatorNameLabel with operator username from active user
@@ -261,7 +323,15 @@ void MainWindow::onOperatorHomePage(int index)
     // update operatorVendorSelect list with usernames of all vendors in vendors table
 
     // build query -- this should likely by a display request
-    QSqlQuery vendorUsernamequery("SELECT USERNAME FROM VENDOR");
+    QSqlQuery vendorUsernamequery(database);
+    vendorUsernamequery.prepare("SELECT Username FROM Vendor ORDER BY Username");
+
+    if(!vendorUsernamequery.exec())
+    {
+        qDebug() << "Vendor list query failed:" << vendorUsernamequery.lastError().text();
+        return;
+    }
+
     while(vendorUsernamequery.next())
     {
         QString username = vendorUsernamequery.value(0).toString();
@@ -291,17 +361,65 @@ void MainWindow::on_refreshDashboardButton_clicked()
 //loadMarketschedule
 void MainWindow::loadMarketSchedule()
 {
+    if(ActiveUser == nullptr)
+    {
+        return;
+    }
+
+    database = QSqlDatabase::database("hinton_connection");
+    if(!database.isOpen())
+    {
+        qDebug() << "Database is not open in loadMarketSchedule.";
+        return;
+    }
+
+    Vendor* activeVendor = dynamic_cast<Vendor*>(ActiveUser);
+    if(activeVendor == nullptr)
+    {
+        return;
+    }
+
+    QString myCategory = QString::fromStdString(activeVendor->getCategory());
     // table setup
     QTableWidget *marketScheduleTable=ui->marketTable;
+    marketScheduleTable->clearContents();
+    marketScheduleTable->setRowCount(0);
     marketScheduleTable->setColumnCount(3);
-    marketScheduleTable->setHorizontalHeaderLabels({"Week Number","Stall ID","Category"});
+    marketScheduleTable->setHorizontalHeaderLabels({"Week Number","Available Spots","Category"});
 
     // Populate Market Schedule -- replace with sql function
-    QSqlQuery marketSchedulePopulateQuery;
-    marketSchedulePopulateQuery.prepare("SELECT WEEK_ID, STALL_ID, CATEGORY FROM MARKETSTALL JOIN MARKETWEEK ON MARKETWEEK.WEEK_ID=MARKETSTALL.MARKET_ID WHERE MARKETSTALL.BOOKED=FALSE AND MARKETSTALL.CATEGORY=:myCategory" );
+    QSqlQuery marketSchedulePopulateQuery(database);
+    marketSchedulePopulateQuery.prepare(R"(
+        SELECT WeekID,
+               CASE
+                   WHEN :myCategory = 'Food' THEN
+                       FoodCapacity - (
+                           SELECT COUNT(*)
+                           FROM Booking B
+                           WHERE B.WeekID = MarketSchedule.WeekID
+                             AND B.Category = 'Food'
+                             AND B.Status = 'Booked'
+                       )
+                   ELSE
+                       ArtisanCapacity - (
+                           SELECT COUNT(*)
+                           FROM Booking B
+                           WHERE B.WeekID = MarketSchedule.WeekID
+                             AND B.Category = 'Artisan'
+                             AND B.Status = 'Booked'
+                       )
+               END AS AvailableSpots
+        FROM MarketSchedule
+        ORDER BY WeekID
+    )");
     marketSchedulePopulateQuery.bindValue(":myCategory",QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getCategory()));
 
     int row = 0;
+    if(!marketSchedulePopulateQuery.exec())
+    {
+        qDebug() << "Market schedule query failed:" << marketSchedulePopulateQuery.lastError().text();
+    }
+
 
     while (marketSchedulePopulateQuery.next())
     {
@@ -315,16 +433,27 @@ void MainWindow::loadMarketSchedule()
 
     // table setup
     QTableWidget *MSActiveBookingTable=ui->ScheduleactiveBookingTable;
+    MSActiveBookingTable->clearContents();
+    MSActiveBookingTable->setRowCount(0);
     MSActiveBookingTable->setColumnCount(2);
     MSActiveBookingTable->setHorizontalHeaderLabels({"Week Number","Category"});
 
     // Populate Active Bookings -- replace with sql function
-    QSqlQuery MSactiveBookingPopulateQuery;
-    MSactiveBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
+    QSqlQuery MSactiveBookingPopulateQuery(database);
+    MSactiveBookingPopulateQuery.prepare(
+        "SELECT WeekID, Category "
+        "FROM Booking "
+        "WHERE Username = :username AND Status = 'Booked' "
+        "ORDER BY WeekID"
+    );
     MSactiveBookingPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
 
 
     row = 0;
+    if(!MSactiveBookingPopulateQuery.exec())
+    {
+        qDebug() << "Schedule active booking query failed:" << MSactiveBookingPopulateQuery.lastError().text();
+    }
 
     while (MSactiveBookingPopulateQuery.next())
     {
