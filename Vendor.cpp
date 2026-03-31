@@ -134,4 +134,15 @@ std::string Vendor::getUsername()
     return getUsername();
 }
 
+Waitlist* Vendor::findWaitlist(int week, std::string category)
+{
+    for(int i=0; i<joinedWaitlists.size();i++)
+    {
+        if(joinedWaitlists[i]->getWeekID()==week && joinedWaitlists[i]->getCategory()==category)
+        {
+           return joinedWaitlists[i];
+        }
+    }
+}
+
 

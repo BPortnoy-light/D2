@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 #include "MarketStall.h"
-//#include "MarketDay.h"
-//#include "BookRequest.h"
+#include "MarketWeek.h"
+
+class BookingRequest;
 
 // category for each
 class Waitlist 
@@ -18,12 +19,12 @@ class Waitlist
         std::string category;
 
         // storage structure of booking requests
-        //std::vector<BookRequest*> bookingQueue;
+        std::vector<BookingRequest*> bookingQueue;
 
     public:
         Waitlist(std::string category,int weekID);
         //void addBookRequest(BookRequest &booking);
-        //void removeBookRequest(BookRequest *booking);
+        void removeBookRequest(std::string vendor, int stall, std::string week);
         std::string getCategory();
         int getWeekID();
 

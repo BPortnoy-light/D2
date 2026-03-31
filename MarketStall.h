@@ -27,7 +27,7 @@ class MarketStall
 
         // Get stall category
         std::string getCategory();
-
+        int getID();
 
 
 };

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "DashboardControl.h"
 #include "AccountStorage.h"
+#include "Waitlist.h"
 
 #include <QMessageBox>
 #include <QTableWidgetItem>
@@ -23,12 +24,17 @@ MainWindow::MainWindow(QWidget *parent)
     database=QSqlDatabase::addDatabase("QSQLITE");
     QString dbPath = QCoreApplication::applicationDirPath()+"/OurDatabaseName.db";
 
+    // operator vendor select button press
+    connect(ui->operatorSelectVendorButton, &QPushButton::clicked,this, &MainWindow::on_operatorSelectVendorButton_clicked);
+
 }
 
 //Destructor
 MainWindow::~MainWindow()
 {
     delete ui;
+    //delete ActiveUser;
+    //delete onBehalfVendor;
 }
 
 
@@ -129,24 +135,6 @@ void MainWindow::onDashboard(int index)
 
     //Dashboard object: delete this when connect database
     DashboardControl dc;
-    //Waitlist Table View - delete this
-    /*
-    ui->WLtableWidget->setHorizontalHeaderLabels({"Date", "Position"});
-    ui->WLtableWidget->setRowCount(8);
-    ui->WLtableWidget->setColumnCount(2);
-
-    ui->WLtableWidget->setItem(0,0,new QTableWidgetItem("2026-05-03"));
-    ui->WLtableWidget->setItem(0,1,new QTableWidgetItem("1"));
-
-    ui->WLtableWidget->setItem(1,0,new QTableWidgetItem("2026-05-10"));
-    ui->WLtableWidget->setItem(1,1,new QTableWidgetItem("2"));
-
-    ui->WLtableWidget->setItem(2,0,new QTableWidgetItem("2026-05-17"));
-    ui->WLtableWidget->setItem(2,1,new QTableWidgetItem("1"));
-
-    ui->WLtableWidget->setItem(3,0,new QTableWidgetItem("2026-05-24"));
-    ui->WLtableWidget->setItem(3,1,new QTableWidgetItem("3"));
-    */
 
     // Populate username, category, phone, email, mailing from active user
     ui->vendorNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
@@ -181,7 +169,7 @@ void MainWindow::onDashboard(int index)
     }
 
     // Setup Waitlist table view
-    QTableWidget *waitlistTable = ui->WLtableWidget;
+    QTableWidget *waitlistTable = ui->WLtableWidget;dynamic_cast<Vendor*>(ActiveUser)->getCategory();
     waitlistTable->setColumnCount(3);
     waitlistTable->setHorizontalHeaderLabels({"Week Number","Type","Queue Position"});
 
@@ -253,21 +241,53 @@ void MainWindow::onDashboard(int index)
 //TODO: OUTSOURCE QUERYBUILDING TO DATABASE MANAGER / DISPLAY REQUEST
 void MainWindow::onOperatorHomePage(int index)
 {
-    ui->operatorVendorSelectList->clear();
+    //std::cout<<"this is running"<<std::endl;
+    ui->operatorBrowseVendorsTable->clear();
+    ui->operatorActiveWaitlistTable->clear();
 
     // update operatorNameLabel with operator username from active user
     ui->operatorNameLabel->setText(QString::fromStdString(ActiveUser->getUsername()));
 
     // update operatorVendorSelect list with usernames of all vendors in vendors table
+    // tabble setup
 
-    // build query -- this should likely by a display request
-    QSqlQuery vendorUsernamequery("SELECT USERNAME FROM VENDOR");
-    while(vendorUsernamequery.next())
+    QTableWidget *browseVendorTable=ui->operatorBrowseVendorsTable;
+    browseVendorTable->setColumnCount(3);
+    browseVendorTable->setHorizontalHeaderLabels({"Vendor ID","Username","Category"});
+    // build query -- replace with sql
+
+    int row = 0;
+    QSqlQuery vendorUsernameQuery("SELECT VENDOR_ID, USERNAME, CATEGORY FROM VENDOR");
+    while(vendorUsernameQuery.next())
     {
-        QString username = vendorUsernamequery.value(0).toString();
-        ui->operatorVendorSelectList->addItem(username);
+        browseVendorTable->insertRow(row);
+
+        browseVendorTable->setItem(row, 0, new QTableWidgetItem(vendorUsernameQuery.value(0).toString()));
+        browseVendorTable->setItem(row, 1, new QTableWidgetItem(vendorUsernameQuery.value(1).toString()));
+        browseVendorTable->setItem(row, 2, new QTableWidgetItem(vendorUsernameQuery.value(2).toString()));
+        row++;
     }
 
+    // tabble setup for active waitlists for vendor
+    QTableWidget *operatorActiveWaitlitTable=ui->operatorActiveWaitlistTable;
+    operatorActiveWaitlitTable->setColumnCount(3);
+    operatorActiveWaitlitTable->setHorizontalHeaderLabels({"Week ID","Category","Position"});
+    // this goes on operatorSelectButton press
+    /*
+    int row = 0;
+    QSqlQuery operatorActiveWaitlistQuery;
+    operatorActiveWaitlistQuery.prepare("SELECT WEEK_ID, CATEGORY, POSITION FROM WAITLIST JOIN WAITLIST_ENTRY ON WAITLIST_ENTRY.WAITLIST_ID=WAITLIST.WAITLIST_ID JOIN VENDOR ON VENDOR.VENDOR_ID=WAITLIST_ENTRY.VENDOR_ID WHERE USERNAME=:username" );
+    operatorActiveWaitlistQuery.bindValue(":username",QString::fromStdString(onBehalfVendor->getUsername()));
+    while(operatorActiveWaitlistQuery.next())
+    {
+        operatorActiveWaitlitTable->insertRow(row);
+
+        operatorActiveWaitlitTable->setItem(row, 0, new QTableWidgetItem(operatorActiveWaitlistQuery.value(0).toString()));
+        operatorActiveWaitlitTable->setItem(row, 1, new QTableWidgetItem(operatorActiveWaitlistQuery.value(1).toString()));
+        operatorActiveWaitlitTable->setItem(row, 2, new QTableWidgetItem(operatorActiveWaitlistQuery.value(2).toString()));
+        row++;
+    }
+    */
 }
 
 
@@ -291,49 +311,118 @@ void MainWindow::on_refreshDashboardButton_clicked()
 //loadMarketschedule
 void MainWindow::loadMarketSchedule()
 {
+    // clear tables
+    ui->ScheduleactiveBookingTable->clear();
+    ui->marketTable->clear();
+
     // table setup
     QTableWidget *marketScheduleTable=ui->marketTable;
     marketScheduleTable->setColumnCount(3);
     marketScheduleTable->setHorizontalHeaderLabels({"Week Number","Stall ID","Category"});
 
-    // Populate Market Schedule -- replace with sql function
-    QSqlQuery marketSchedulePopulateQuery;
-    marketSchedulePopulateQuery.prepare("SELECT WEEK_ID, STALL_ID, CATEGORY FROM MARKETSTALL JOIN MARKETWEEK ON MARKETWEEK.WEEK_ID=MARKETSTALL.MARKET_ID WHERE MARKETSTALL.BOOKED=FALSE AND MARKETSTALL.CATEGORY=:myCategory" );
-    marketSchedulePopulateQuery.bindValue(":myCategory",QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getCategory()));
-
-    int row = 0;
-
-    while (marketSchedulePopulateQuery.next())
-    {
-        marketScheduleTable->insertRow(row);
-
-        marketScheduleTable->setItem(row, 0, new QTableWidgetItem(marketSchedulePopulateQuery.value(0).toString()));
-        marketScheduleTable->setItem(row, 1, new QTableWidgetItem(marketSchedulePopulateQuery.value(1).toString()));
-        marketScheduleTable->setItem(row, 2, new QTableWidgetItem(marketSchedulePopulateQuery.value(2).toString()));
-        row++;
-    }
-
-    // table setup
     QTableWidget *MSActiveBookingTable=ui->ScheduleactiveBookingTable;
     MSActiveBookingTable->setColumnCount(2);
     MSActiveBookingTable->setHorizontalHeaderLabels({"Week Number","Category"});
 
-    // Populate Active Bookings -- replace with sql function
-    QSqlQuery MSactiveBookingPopulateQuery;
-    MSactiveBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
-    MSactiveBookingPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
-
-
-    row = 0;
-
-    while (MSactiveBookingPopulateQuery.next())
+    // if user permission is operator show different buttons and load differently
+    // WILL CRASH AS ON BEHALF USER NOT YET SET TO LOAD
+    if(ActiveUser->getPermission()==1)
     {
-        MSActiveBookingTable->insertRow(row);
+        // hide vendor book and cancel button and show label
+        ui->scheduleBehalfActionLabel->setVisible(true);
+        ui->scheduleBehalfActionVendorUsernameLabel->setVisible(true);
+        ui->bookButton->setVisible(false);
+        ui->cancelStallButton->setVisible(false);
+        ui->bookOnBehalfButton->setVisible(true);
+        ui->cancelOnBehalfButton->setVisible(true);
 
-        MSActiveBookingTable->setItem(row, 0, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(0).toString()));
-        MSActiveBookingTable->setItem(row, 1, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(1).toString()));
-        row++;
+        // Populate Market Schedule -- replace with sql function
+        QSqlQuery marketSchedulePopulateQuery;
+        marketSchedulePopulateQuery.prepare("SELECT WEEK_ID, STALL_ID, CATEGORY FROM MARKETSTALL JOIN MARKETWEEK ON MARKETWEEK.WEEK_ID=MARKETSTALL.WEEK_ID WHERE MARKETSTALL.BOOKED=FALSE AND MARKETSTALL.CATEGORY=:myCategory" );
+        marketSchedulePopulateQuery.bindValue(":myCategory",QString::fromStdString(onBehalfVendor->getCategory()));
+
+        int row = 0;
+
+        while (marketSchedulePopulateQuery.next())
+        {
+            marketScheduleTable->insertRow(row);
+
+            marketScheduleTable->setItem(row, 0, new QTableWidgetItem(marketSchedulePopulateQuery.value(0).toString()));
+            marketScheduleTable->setItem(row, 1, new QTableWidgetItem(marketSchedulePopulateQuery.value(1).toString()));
+            marketScheduleTable->setItem(row, 2, new QTableWidgetItem(marketSchedulePopulateQuery.value(2).toString()));
+            row++;
+        }
+
+
+        // Populate Active Bookings -- replace with sql function
+        QSqlQuery MSactiveBookingPopulateQuery;
+        MSactiveBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
+        MSactiveBookingPopulateQuery.bindValue(":username",QString::fromStdString(onBehalfVendor->getUsername()));
+
+
+        row = 0;
+
+        while (MSactiveBookingPopulateQuery.next())
+        {
+            MSActiveBookingTable->insertRow(row);
+
+            MSActiveBookingTable->setItem(row, 0, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(0).toString()));
+            MSActiveBookingTable->setItem(row, 1, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(1).toString()));
+            row++;
+        }
+
+
+
     }
+    else
+    {
+        // this happens if user is vendor
+        ui->scheduleBehalfActionLabel->setVisible(false);
+        ui->scheduleBehalfActionVendorUsernameLabel->setVisible(false);
+        ui->bookButton->setVisible(true);
+        ui->cancelStallButton->setVisible(true);
+        ui->bookOnBehalfButton->setVisible(false);
+        ui->cancelOnBehalfButton->setVisible(false);
+
+        // Populate Market Schedule -- replace with sql function
+        QSqlQuery marketSchedulePopulateQuery;
+        marketSchedulePopulateQuery.prepare("SELECT WEEK_ID, STALL_ID, CATEGORY FROM MARKETSTALL JOIN MARKETWEEK ON MARKETWEEK.WEEK_ID=MARKETSTALL.WEEK_ID WHERE MARKETSTALL.BOOKED=FALSE AND MARKETSTALL.CATEGORY=:myCategory" );
+        marketSchedulePopulateQuery.bindValue(":myCategory",QString::fromStdString(dynamic_cast<Vendor*>(ActiveUser)->getCategory()));
+
+        int row = 0;
+
+        while (marketSchedulePopulateQuery.next())
+        {
+            marketScheduleTable->insertRow(row);
+
+            marketScheduleTable->setItem(row, 0, new QTableWidgetItem(marketSchedulePopulateQuery.value(0).toString()));
+            marketScheduleTable->setItem(row, 1, new QTableWidgetItem(marketSchedulePopulateQuery.value(1).toString()));
+            marketScheduleTable->setItem(row, 2, new QTableWidgetItem(marketSchedulePopulateQuery.value(2).toString()));
+            row++;
+        }
+
+
+        // Populate Active Bookings -- replace with sql function
+        QSqlQuery MSactiveBookingPopulateQuery;
+        MSactiveBookingPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY FROM BOOKINGREQUEST JOIN VENDOR ON VENDOR.VENDOR_ID=BOOKINGREQUEST.VENDOR_ID WHERE USERNAME=:username" );
+        MSactiveBookingPopulateQuery.bindValue(":username",QString::fromStdString(ActiveUser->getUsername()));
+
+
+        row = 0;
+
+        while (MSactiveBookingPopulateQuery.next())
+        {
+            MSActiveBookingTable->insertRow(row);
+
+            MSActiveBookingTable->setItem(row, 0, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(0).toString()));
+            MSActiveBookingTable->setItem(row, 1, new QTableWidgetItem(MSactiveBookingPopulateQuery.value(1).toString()));
+            row++;
+        }
+    }
+
+
+
+
 
 
 }
@@ -399,6 +488,8 @@ void MainWindow::on_actionVendorSelect_triggered()
 void MainWindow::on_actionLogout_triggered()
 {
     // clear active user reset menu bar to invisivle
+    //delete ActiveUser;
+    //delete onBehalfVendor;
     ActiveUser=nullptr;
     onBehalfVendor=nullptr;
     ui->menubar->setVisible(false);
@@ -419,3 +510,118 @@ void MainWindow::on_actionLogout_3_triggered()
     ui->menubar->setVisible(false);
     ui->vendorDashboardSW->setCurrentWidget(ui->loginPage);
 }
+
+// add sql for building
+void MainWindow::on_operatorSelectVendorButton_clicked()
+{
+    // setup vendor browse table
+    // get selected row
+    int row = ui->operatorBrowseVendorsTable->currentRow();
+
+    // if no row selected do nothing
+    if (row <0 )
+    {
+        return;
+    }
+    else
+    {
+        // get username from selected item
+        QTableWidgetItem* extractedItem=ui->operatorBrowseVendorsTable->item(row, 1);
+        QString extractedUsername = extractedItem->text();
+
+        // sql query to find vendor with correct user name
+        QSqlQuery getBehalfVendorQuery;
+        getBehalfVendorQuery.prepare("SELECT BUSINESS_NAME, OWNER_NAME, EMAIL, PHONE, MAILING, CATEGORY, USERNAME FROM VENDOR WHERE USERNAME=:username");
+        getBehalfVendorQuery.bindValue(":username", extractedUsername);
+
+        // build partial vendor obj and set onBehalfVendor
+        onBehalfVendor= new Vendor(getBehalfVendorQuery.value(0).toString().toStdString(), getBehalfVendorQuery.value(1).toString().toStdString(), getBehalfVendorQuery.value(2).toString().toStdString(),
+                               getBehalfVendorQuery.value(3).toString().toStdString(),  getBehalfVendorQuery.value(4).toString().toStdString(), getBehalfVendorQuery.value(5).toString().toStdString(),
+                               getBehalfVendorQuery.value(6).toString().toStdString());
+        // Build and assign compliance vector from db
+
+        // build and assign waitlist vector from db
+
+        // build and assign notification vector from db
+
+
+
+        // setup and populate waillist table
+        QTableWidget *operatorWaitlistTable = ui->operatorActiveWaitlistTable;
+        operatorWaitlistTable->setColumnCount(3);
+        operatorWaitlistTable->setHorizontalHeaderLabels({"Week Number","Type","Queue Position"});
+
+        // Populate Waitlist table
+        // PLACEHOLDER -- INSERT SQL CALL HERE
+        QSqlQuery operatorWaitlistPopulateQuery;
+        operatorWaitlistPopulateQuery.prepare("SELECT WEEK_ID, CATEGORY, POSITION FROM WAITLIST JOIN WAITLIST_ENTRY ON WAITLIST_ENTRY.WAITLIST_ID=WAITLIST.WAITLIST_ID JOIN VENDOR ON VENDOR.VENDOR_ID=WAITLIST_ENTRY.VENDOR_ID WHERE USERNAME=:username" );
+        operatorWaitlistPopulateQuery.bindValue(":username",extractedUsername);
+
+        row = 0;
+
+        while (operatorWaitlistPopulateQuery.next())
+        {
+            operatorWaitlistTable->insertRow(row);
+
+            operatorWaitlistTable->setItem(row, 0, new QTableWidgetItem(operatorWaitlistPopulateQuery.value(0).toString()));
+            operatorWaitlistTable->setItem(row, 1, new QTableWidgetItem(operatorWaitlistPopulateQuery.value(1).toString()));
+            operatorWaitlistTable->setItem(row, 2, new QTableWidgetItem(operatorWaitlistPopulateQuery.value(2).toString()));
+            row++;
+        }
+    }
+
+
+}
+
+// navigates to market schedule page
+void MainWindow::on_operatorManageStallButton_clicked()
+{
+    ui->vendorDashboardSW->setCurrentWidget(ui->schedulePage);
+}
+
+
+// leave waitlist buttons for dashboard
+// user selects row off waitlist to leave then clicks this button
+// button should 1. remove user from waitlist(update active user strucutre waitlist) 2. update Waitlist structure in database 3. update Stall in database (set booked as false) 3. notificiation that operation is complete
+void MainWindow::on_vendorLeaveWaitlist_clicked()
+{
+    // check to see if roww has been selected {"Week Number","Type","Queue Position"}
+    int selectedRow = ui->WLtableWidget->currentRow();
+
+    // if no row selected do nothing
+    if (selectedRow <0 )
+    {
+        return;
+    }
+    else
+    {
+        // extract
+        QTableWidgetItem* extractedItem=ui->WLtableWidget->item(selectedRow, 0);
+        int extractedWeek = extractedItem->text().toInt();
+
+        extractedItem=ui->WLtableWidget->item(selectedRow, 1);
+        QString extractedCategory = extractedItem->text();
+
+        extractedItem=ui->WLtableWidget->item(selectedRow, 2);
+        QString extractedPosition = extractedItem->text();
+
+        // remove waitlist from vendors joined waitlist (active user structure)
+        // find correct waitlist in joined waitlists
+        Waitlist* waitlistToEdit = dynamic_cast<Vendor*>(ActiveUser)->findWaitlist(extractedWeek, extractedCategory.toStdString());
+
+        // remove waitlist from it
+        //std::string username, int stall, std::string week
+        extractedItem=ui->WLtableWidget->item(selectedRow, 0);
+        std::string extractedWeekStr = extractedItem->text().toStdString();
+
+        // **PLACEHOLDER VALUE FOR STALL** -- need to figure out how to extract stall
+        waitlistToEdit->removeBookRequest(ActiveUser->getUsername(),2,extractedWeekStr);
+
+        // INSERRT SQL UPDATE FOR CHANGED STRUCTURES
+
+
+        // geneerate cancelation notification and add to notification struct
+
+    }
+}
+
