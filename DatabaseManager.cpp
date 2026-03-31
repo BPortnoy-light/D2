@@ -73,10 +73,10 @@ bool DatabaseManager::initialize(const QString& dbPath)
 bool DatabaseManager::openDatabase(const QString& dbPath)
 {
     //Reuse existing connection if available
-    if (QSqlDatabase::contains("hinton_connection")) {
-        db = QSqlDatabase::database("hinton_connection");
+    if (QSqlDatabase::contains()) {
+        db = QSqlDatabase::database();
     } else {
-        db = QSqlDatabase::addDatabase("QSQLITE", "hinton_connection");
+        db = QSqlDatabase::addDatabase("QSQLITE");
         db.setDatabaseName(dbPath);
     }
 
